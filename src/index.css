@@ -1,0 +1,188 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 140 20% 97%;
+    --foreground: 140 30% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 140 30% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 140 30% 10%;
+
+    --primary: 142 50% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 140 15% 92%;
+    --secondary-foreground: 140 30% 20%;
+
+    --muted: 140 10% 90%;
+    --muted-foreground: 140 10% 45%;
+
+    --accent: 35 90% 55%;
+    --accent-foreground: 35 90% 15%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 140 15% 85%;
+    --input: 140 15% 85%;
+    --ring: 142 50% 36%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 140 20% 97%;
+    --sidebar-foreground: 140 30% 10%;
+    --sidebar-primary: 142 50% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 140 15% 92%;
+    --sidebar-accent-foreground: 140 30% 20%;
+    --sidebar-border: 140 15% 85%;
+    --sidebar-ring: 142 50% 36%;
+
+    --chart-1: 142 50% 36%;
+    --chart-2: 35 90% 55%;
+    --chart-3: 0 72% 50%;
+    --chart-4: 200 70% 50%;
+    --chart-5: 280 60% 50%;
+
+    --fresh: 142 70% 45%;
+    --fresh-foreground: 0 0% 100%;
+    --warning: 35 90% 55%;
+    --warning-foreground: 35 90% 15%;
+    --expired: 0 72% 50%;
+    --expired-foreground: 0 0% 100%;
+
+    --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-serif: 'Crimson Pro', ui-serif, Georgia, serif;
+    --font-mono: 'SF Mono', ui-monospace, monospace;
+
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+  }
+
+  .dark {
+    --background: 140 20% 8%;
+    --foreground: 140 10% 95%;
+
+    --card: 140 20% 12%;
+    --card-foreground: 140 10% 95%;
+
+    --popover: 140 20% 12%;
+    --popover-foreground: 140 10% 95%;
+
+    --primary: 142 50% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 140 15% 20%;
+    --secondary-foreground: 140 10% 90%;
+
+    --muted: 140 10% 25%;
+    --muted-foreground: 140 10% 65%;
+
+    --accent: 35 90% 55%;
+    --accent-foreground: 35 90% 95%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 140 15% 25%;
+    --input: 140 15% 25%;
+    --ring: 142 50% 45%;
+
+    --sidebar-background: 140 20% 10%;
+    --sidebar-foreground: 140 10% 95%;
+    --sidebar-primary: 142 50% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 140 15% 20%;
+    --sidebar-accent-foreground: 140 10% 90%;
+    --sidebar-border: 140 15% 25%;
+    --sidebar-ring: 142 50% 45%;
+
+    --chart-1: 142 50% 45%;
+    --chart-2: 35 90% 55%;
+    --chart-3: 0 72% 55%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 280 60% 55%;
+
+    --fresh: 142 70% 50%;
+    --fresh-foreground: 0 0% 100%;
+    --warning: 35 90% 55%;
+    --warning-foreground: 35 90% 15%;
+    --expired: 0 72% 55%;
+    --expired-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 217 32% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 24% 26%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 212 26% 83%;
+    --primary-foreground: 228 84% 4%;
+
+    --secondary: 215 19% 34%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 16% 46%;
+    --muted-foreground: 210 40% 98%;
+
+    --accent: 228 84% 4%;
+    --accent-foreground: 215 20% 65%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 85% 97%;
+
+    --border: 215 19% 34%;
+    --input: 215 19% 34%;
+    --ring: 212 26% 83%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 212 26% 83%;
+    --sidebar-primary-foreground: 228 84% 4%;
+    --sidebar-accent: 215 20% 65%;
+    --sidebar-accent-foreground: 228 84% 4%;
+    --sidebar-border: 215 19% 34%;
+    --sidebar-ring: 212 26% 83%;
+    --chart-1: 215 12% 83%;
+    --chart-2: 212 26% 83%;
+    --chart-3: 215 20% 65%;
+    --chart-4: 217 10% 64%;
+    --chart-5: 215 16% 46%;
+    --sidebar: 217 32% 17%;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
