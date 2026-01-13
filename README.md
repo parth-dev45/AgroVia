@@ -1,27 +1,45 @@
 # Agrovia
 
-Farm-to-Retail Freshness Tracking.
+**Farm-to-Retail Freshness Tracking Platform**
 
-## Project info
+Agrovia is a comprehensive solution designed to track produce freshness from farm to retail. By leveraging QR codes, quality grading, and expiry prediction, we aim to reduce food waste and build consumer trust in the food supply chain.
 
-Track produce freshness from farm to retail with QR codes, quality grading, and expiry prediction. Reduce food waste and build consumer trust.
+## Key Features
+
+- **Farm-to-Retail Tracking**: Monitor the journey of produce from the source to the shelf.
+- **Quality Grading**: Automated and standardized grading to ensure produce quality.
+- **Expiry Prediction**: AI-driven insights to predict shelf life and reduce spoilage.
+- **Consumer Transparency**: QR codes allow consumers to verify the origin and quality of their food.
 
 ## Tech Stack
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This project is built using modern web technologies:
+
+- **Vite**: Next-generation frontend tooling.
+- **TypeScript**: Typed superset of JavaScript for better code quality.
+- **React**: Library for building user interfaces.
+- **shadcn-ui**: Reusable components built with Radix UI and Tailwind CSS.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
 
 ## Getting Started
 
-1. Install dependencies:
-   ```sh
-   npm i
-   ```
+To run this project locally:
 
-2. Start the development server:
-   ```sh
-   npm run dev
-   ```
+1.  **Clone the repository**:
+    ```sh
+    git clone <YOUR_GIT_URL>
+    ```
+
+2.  **Install dependencies**:
+    ```sh
+    npm install
+    ```
+
+3.  **Start the development server**:
+    ```sh
+    npm run dev
+    ```
+
+## deployment
+
+This project is deployed on GitHub Pages.
