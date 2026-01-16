@@ -9,34 +9,34 @@ import { getAllFarmers, addBatch, addFarmer } from '@/lib/mockData';
 import { generateBatchId, generateQRId, calculateExpiryDate, calculateRemainingDays, determineFreshnessStatus, isSaleAllowed } from '@/lib/freshness';
 import { Farmer, BatchWithDetails, StorageType, QualityGrade, PRODUCTS, getProductById } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Leaf, Plus, CheckCircle2, Search } from 'lucide-react';
+import { Leaf, Plus, CheckCircle2, Search, ArrowRight, PackagePlus } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Link } from 'react-router-dom';
 
 export default function FarmerIntake() {
   const { toast } = useToast();
   const farmers = getAllFarmers();
-  
+
   const [formData, setFormData] = useState({
     farmerId: '',
     productId: '',
     quantity: '',
     storageType: 'Normal' as StorageType,
   });
-  
+
   const [newFarmerName, setNewFarmerName] = useState('');
   const [showNewFarmer, setShowNewFarmer] = useState(false);
   const [createdBatch, setCreatedBatch] = useState<BatchWithDetails | null>(null);
   const [productSearch, setProductSearch] = useState('');
 
-  const selectedProduct = useMemo(() => 
-    getProductById(formData.productId), 
+  const selectedProduct = useMemo(() =>
+    getProductById(formData.productId),
     [formData.productId]
   );
 
   const filteredProducts = useMemo(() => {
     if (!productSearch) return PRODUCTS;
-    return PRODUCTS.filter(p => 
+    return PRODUCTS.filter(p =>
       p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
       p.category.toLowerCase().includes(productSearch.toLowerCase())
     );
@@ -55,7 +55,7 @@ export default function FarmerIntake() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.farmerId || !formData.quantity || !formData.productId) {
       toast({
         title: 'Missing Information',
@@ -67,8 +67,7 @@ export default function FarmerIntake() {
 
     const batchId = generateBatchId();
     const harvestDate = new Date();
-    const product = getProductById(formData.productId);
-    
+
     // Default to grade B until quality testing (will be updated in quality page)
     const defaultGrade: QualityGrade = 'B';
     const expiryDate = calculateExpiryDate(harvestDate, defaultGrade, formData.storageType, formData.productId);
@@ -107,7 +106,7 @@ export default function FarmerIntake() {
 
     addBatch(batch);
     setCreatedBatch(batch);
-    
+
     toast({
       title: 'Batch Created Successfully!',
       description: `Batch ID: ${batchId}`,
@@ -116,21 +115,21 @@ export default function FarmerIntake() {
 
   const handleAddFarmer = () => {
     if (!newFarmerName.trim()) return;
-    
+
     const farmerId = `F${(farmers.length + 1).toString().padStart(3, '0')}`;
     const farmerCode = `FRM-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-    
+
     const newFarmer: Farmer = {
       farmerId,
       farmerCode,
       name: newFarmerName.trim(),
     };
-    
+
     addFarmer(newFarmer);
     setFormData({ ...formData, farmerId });
     setNewFarmerName('');
     setShowNewFarmer(false);
-    
+
     toast({
       title: 'Farmer Added',
       description: `${newFarmerName} has been registered.`,
@@ -143,64 +142,68 @@ export default function FarmerIntake() {
   };
 
   if (createdBatch) {
-    const product = getProductById(createdBatch.cropType) || 
+    const product = getProductById(createdBatch.cropType) ||
       { id: createdBatch.cropType, name: createdBatch.cropType, emoji: '', category: 'Vegetable' as const, unit: 'kg' };
-    
+
     return (
       <Layout>
-        <div className="max-w-2xl mx-auto">
-          <Card className="border-2 border-fresh">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-fresh/10 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="h-8 w-8 text-fresh" />
+        <div className="max-w-2xl mx-auto space-y-8 animate-in zoom-in-95 duration-500">
+          <Card className="glass-card border-2 border-fresh/50 shadow-2xl">
+            <CardHeader className="text-center pb-8 border-b border-border/50">
+              <div className="mx-auto w-20 h-20 bg-gradient-to-br from-fresh to-fresh/80 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-fresh/20 animate-in bounce-in duration-700">
+                <CheckCircle2 className="h-10 w-10 text-white" />
               </div>
-              <CardTitle className="text-2xl">Batch Created Successfully!</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-fresh to-primary">Batch Created Successfully!</CardTitle>
+              <CardDescription className="text-lg">
                 The batch has been registered and is ready for quality testing.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">Batch ID</p>
-                <p className="text-2xl font-mono font-bold">{createdBatch.batchId}</p>
+            <CardContent className="space-y-8 pt-8">
+              <div className="text-center space-y-2">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Batch ID</p>
+                <div className="inline-block px-6 py-2 bg-secondary/50 rounded-xl border border-secondary">
+                  <p className="text-3xl font-mono font-bold tracking-wider text-primary">{createdBatch.batchId}</p>
+                </div>
               </div>
 
-              <div className="flex justify-center">
-                <QRCodeSVG 
+              <div className="flex justify-center p-6 bg-white rounded-2xl shadow-inner border border-border/50 w-fit mx-auto">
+                <QRCodeSVG
                   value={`${window.location.origin}/scan/${createdBatch.batchId}`}
-                  size={160}
+                  size={180}
                   level="M"
                   includeMargin
-                  className="rounded-lg border border-border p-2 bg-card"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground">Product</p>
-                  <p className="font-medium">{product.name}</p>
+                <div className="p-4 bg-secondary/30 rounded-xl border border-border/50 hover:bg-secondary/50 transition-colors">
+                  <p className="text-muted-foreground mb-1">Product</p>
+                  <p className="font-semibold text-lg">{product.name}</p>
                 </div>
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground">Quantity</p>
-                  <p className="font-medium">{createdBatch.quantity} {product.unit}</p>
+                <div className="p-4 bg-secondary/30 rounded-xl border border-border/50 hover:bg-secondary/50 transition-colors">
+                  <p className="text-muted-foreground mb-1">Quantity</p>
+                  <p className="font-semibold text-lg">{createdBatch.quantity} {product.unit}</p>
                 </div>
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground">Storage Type</p>
-                  <p className="font-medium">{createdBatch.storage?.storageType}</p>
+                <div className="p-4 bg-secondary/30 rounded-xl border border-border/50 hover:bg-secondary/50 transition-colors">
+                  <p className="text-muted-foreground mb-1">Storage Type</p>
+                  <p className="font-semibold text-lg">{createdBatch.storage?.storageType}</p>
                 </div>
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground">Status</p>
-                  <p className="font-medium text-warning">Pending Quality Test</p>
+                <div className="p-4 bg-secondary/30 rounded-xl border border-border/50 hover:bg-secondary/50 transition-colors">
+                  <p className="text-muted-foreground mb-1">Status</p>
+                  <p className="font-semibold text-lg text-warning flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-warning animate-pulse" />
+                    Pending Test
+                  </p>
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <Button onClick={resetForm} variant="outline" className="flex-1">
-                  Register Another Batch
+              <div className="flex gap-4 pt-4">
+                <Button onClick={resetForm} variant="outline" className="flex-1 h-12 text-base rounded-xl">
+                  Register Another
                 </Button>
                 <Link to="/quality" className="flex-1">
-                  <Button className="w-full">
-                    Proceed to Quality Testing
+                  <Button className="w-full h-12 text-base rounded-xl shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary">
+                    Proceed to Grading <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
               </div>
@@ -213,72 +216,70 @@ export default function FarmerIntake() {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Farmer Intake</h1>
-          <p className="text-muted-foreground mt-1">
-            Register new harvests and generate batch tracking
+      <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="mb-8 text-center space-y-2">
+          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4 ring-1 ring-primary/20">
+            <PackagePlus className="h-8 w-8 text-primary" />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Farmer Intake</h1>
+          <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
+            Register new harvests and generate traceable batch IDs
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Leaf className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <CardTitle>New Harvest Registration</CardTitle>
-                <CardDescription>
-                  Enter harvest details to create a new batch
-                </CardDescription>
-              </div>
-            </div>
+        <Card className="glass-card shadow-xl overflow-visible">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">New Harvest Registration</CardTitle>
+            <CardDescription>
+              Enter harvest details to generate a secure tracking QR code
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
               {/* Product Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="product">Product Type *</Label>
-                <Select 
-                  value={formData.productId} 
+              <div className="space-y-3">
+                <Label htmlFor="product" className="text-base font-medium">Product Selection</Label>
+                <Select
+                  value={formData.productId}
                   onValueChange={(value) => setFormData({ ...formData, productId: value })}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full h-12 rounded-xl border-border/50 bg-white/50 dark:bg-black/20 backdrop-blur-sm focus:ring-2 ring-primary/20 transition-all hover:bg-white/80 dark:hover:bg-black/40">
                     <SelectValue placeholder="Select a product">
                       {selectedProduct && (
                         <span className="flex items-center gap-2">
-                          <span>{selectedProduct.name}</span>
+                          <span className="text-xl">{selectedProduct.emoji}</span>
+                          <span className="font-medium">{selectedProduct.name}</span>
                         </span>
                       )}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    <div className="px-2 py-2 sticky top-0 bg-popover">
+                  <SelectContent className="max-h-[300px] glass">
+                    <div className="px-2 py-2 sticky top-0 bg-popover/80 backdrop-blur-md z-10 border-b mb-1">
                       <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Search products..."
                           value={productSearch}
                           onChange={(e) => setProductSearch(e.target.value)}
-                          className="pl-8"
+                          className="pl-9 h-10 rounded-lg bg-secondary/50 border-0"
                         />
                       </div>
                     </div>
                     {Object.entries(productsByCategory).map(([category, products]) => (
                       <SelectGroup key={category}>
-                        <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        <SelectLabel className="text-xs font-bold text-primary px-4 py-2 mt-2 bg-primary/5 rounded-md mx-2">
                           {category}
                         </SelectLabel>
                         {products.map((product) => (
-                          <SelectItem 
-                            key={product.id} 
+                          <SelectItem
+                            key={product.id}
                             value={product.id}
-                            className="cursor-pointer"
+                            className="cursor-pointer py-3 px-4 focus:bg-primary/10 rounded-lg mx-2 my-0.5"
                           >
-                            <span className="flex items-center gap-2">
-                              <span>{product.name}</span>
-                              <span className="text-xs text-muted-foreground ml-auto">
+                            <span className="flex items-center gap-3">
+                              <span className="text-xl">{product.emoji}</span>
+                              <span className="font-medium">{product.name}</span>
+                              <span className="text-xs text-muted-foreground ml-auto bg-secondary px-2 py-1 rounded-md">
                                 per {product.unit}
                               </span>
                             </span>
@@ -288,61 +289,52 @@ export default function FarmerIntake() {
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedProduct && (
-                  <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg mt-2">
-                    <div className="h-8 w-8 bg-primary/10 rounded flex items-center justify-center">
-                      <Leaf className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <span className="font-medium">{selectedProduct.name}</span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {selectedProduct.category}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Farmer Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="farmer">Farmer *</Label>
+              <div className="space-y-3">
+                <Label htmlFor="farmer" className="text-base font-medium">Farmer Details</Label>
                 {!showNewFarmer ? (
-                  <div className="flex gap-2">
-                    <Select 
-                      value={formData.farmerId} 
+                  <div className="flex gap-3">
+                    <Select
+                      value={formData.farmerId}
                       onValueChange={(value) => setFormData({ ...formData, farmerId: value })}
                     >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select a farmer" />
+                      <SelectTrigger className="flex-1 h-12 rounded-xl border-border/50 bg-white/50 dark:bg-black/20 backdrop-blur-sm hover:bg-white/80">
+                        <SelectValue placeholder="Select registered farmer" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="glass">
                         {farmers.map((farmer) => (
-                          <SelectItem key={farmer.farmerId} value={farmer.farmerId}>
-                            {farmer.name} ({farmer.farmerCode})
+                          <SelectItem key={farmer.farmerId} value={farmer.farmerId} className="py-2.5">
+                            <span className="font-medium">{farmer.name}</span>
+                            <span className="text-muted-foreground ml-2 text-xs">({farmer.farmerCode})</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => setShowNewFarmer(true)}
+                      className="h-12 w-12 rounded-xl border-dashed border-2 hover:border-solid hover:bg-secondary"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-5 w-5" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="flex gap-3 animate-in fade-in zoom-in-95 duration-200">
                     <Input
                       placeholder="Enter farmer name"
                       value={newFarmerName}
                       onChange={(e) => setNewFarmerName(e.target.value)}
+                      className="h-12 rounded-xl bg-white/50 dark:bg-black/20"
                     />
-                    <Button type="button" onClick={handleAddFarmer}>Add</Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button type="button" onClick={handleAddFarmer} className="h-12 rounded-xl px-6">Add</Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
                       onClick={() => setShowNewFarmer(false)}
+                      className="h-12 rounded-xl"
                     >
                       Cancel
                     </Button>
@@ -350,44 +342,60 @@ export default function FarmerIntake() {
                 )}
               </div>
 
-              {/* Quantity */}
-              <div className="space-y-2">
-                <Label htmlFor="quantity">
-                  Quantity ({selectedProduct?.unit || 'kg'}) *
-                </Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  placeholder={`Enter quantity in ${selectedProduct?.unit || 'kg'}`}
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-6">
+                {/* Quantity */}
+                <div className="space-y-3">
+                  <Label htmlFor="quantity" className="text-base font-medium">
+                    Quantity
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="quantity"
+                      type="number"
+                      min="1"
+                      step="0.1"
+                      placeholder="0.00"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                      className="h-12 rounded-xl pl-4 pr-12 bg-white/50 dark:bg-black/20 text-lg font-medium"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">
+                      {selectedProduct?.unit || 'kg'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Storage Type */}
+                <div className="space-y-3">
+                  <Label htmlFor="storage" className="text-base font-medium">Storage Method</Label>
+                  <Select
+                    value={formData.storageType}
+                    onValueChange={(value: StorageType) => setFormData({ ...formData, storageType: value })}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl bg-white/50 dark:bg-black/20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="glass">
+                      <SelectItem value="Normal" className="py-3">
+                        <span className="font-medium">Normal Storage</span>
+                      </SelectItem>
+                      <SelectItem value="Cold" className="py-3">
+                        <span className="font-medium text-fresh flex items-center gap-2">
+                          Cold Storage <span className="text-xs bg-fresh/10 px-2 py-0.5 rounded-full">+40% Life</span>
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              {/* Storage Type */}
-              <div className="space-y-2">
-                <Label htmlFor="storage">Storage Type</Label>
-                <Select 
-                  value={formData.storageType} 
-                  onValueChange={(value: StorageType) => setFormData({ ...formData, storageType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Normal">Normal Storage</SelectItem>
-                    <SelectItem value="Cold">Cold Storage (+40% shelf life)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Cold storage extends shelf life significantly
-                </p>
-              </div>
-
-              <Button type="submit" className="w-full" size="lg" disabled={!formData.productId}>
-                Register Harvest & Generate Batch ID
+              <Button
+                type="submit"
+                className="w-full h-14 text-lg font-semibold rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:scale-[1.02] transition-all shadow-xl shadow-primary/20"
+                disabled={!formData.productId}
+              >
+                Generated Batch ID
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </form>
           </CardContent>
