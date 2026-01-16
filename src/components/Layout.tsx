@@ -1,9 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Leaf, 
-  Warehouse, 
-  Store, 
-  BarChart3, 
+import {
+  Leaf,
+  Warehouse,
+  Store,
+  BarChart3,
   ClipboardCheck,
   Menu,
   X,
@@ -20,9 +20,9 @@ interface LayoutProps {
 }
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: BarChart3 },
-  { path: '/farmer', label: 'Farmer Intake', icon: Leaf },
-  { path: '/quality', label: 'Quality Grading', icon: ClipboardCheck },
+  { path: '/', label: 'Overview', icon: BarChart3 },
+  { path: '/farmer', label: 'Farmer', icon: Leaf },
+  { path: '/quality', label: 'Quality', icon: ClipboardCheck },
   { path: '/warehouse', label: 'Warehouse', icon: Warehouse },
   { path: '/retailer', label: 'Retailer', icon: Store },
   { path: '/reports', label: 'Reports', icon: FileText },
@@ -34,15 +34,15 @@ export function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Leaf className="h-5 w-5 text-primary-foreground" />
+    <div className="min-h-screen">
+      {/* Floating Navbar */}
+      <div className="fixed top-4 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
+        <header className="w-full max-w-5xl rounded-2xl glass px-4 py-3 flex items-center justify-between pointer-events-auto">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-105 group-hover:rotate-3">
+              <Leaf className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-foreground">Agrovia</span>
+            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Agrovia</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -55,14 +55,19 @@ export function Layout({ children }: LayoutProps) {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                    'relative px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      ? 'text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-primary rounded-xl -z-10 shadow-lg shadow-primary/25 layout-id-active" />
+                  )}
+                  <span className="relative flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </span>
                 </Link>
               );
             })}
@@ -74,17 +79,19 @@ export function Layout({ children }: LayoutProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden rounded-xl hover:bg-secondary/50"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
-        </div>
+        </header>
+      </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <nav className="md:hidden border-t border-border bg-card p-4">
+      {/* Mobile Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden pt-24 px-4">
+          <nav className="glass rounded-3xl p-4 animate-in slide-in-from-top-4 fade-in duration-300">
             <div className="flex flex-col gap-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -95,9 +102,9 @@ export function Layout({ children }: LayoutProps) {
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                      'flex items-center gap-4 px-4 py-3 text-base font-medium rounded-2xl transition-all active:scale-98',
                       isActive
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     )}
                   >
@@ -108,11 +115,11 @@ export function Layout({ children }: LayoutProps) {
               })}
             </div>
           </nav>
-        )}
-      </header>
+        </div>
+      )}
 
-      {/* Main Content */}
-      <main className="container py-6 md:py-8">
+      {/* Main Content Spacer for Floating Nav */}
+      <main className="container py-24 md:py-28 max-w-7xl animate-in fade-in duration-700 slide-in-from-bottom-4">
         {children}
       </main>
     </div>
