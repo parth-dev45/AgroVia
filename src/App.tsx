@@ -12,6 +12,7 @@ import CustomerLookup from "./pages/CustomerLookup";
 import ConsumerScan from "./pages/ConsumerScan";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 import TraceabilityExplorer from "./pages/TraceabilityExplorer";
 
 const queryClient = new QueryClient();
@@ -23,14 +24,14 @@ const App = () => (
       <Sonner />
       <HashRouter>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/farmer" element={<FarmerIntake />} />
-          <Route path="/quality" element={<QualityGrading />} />
+          <Route path="/grading" element={<QualityGrading />} />
+          <Route path="/scan/:batchId" element={<ConsumerScan />} />
           <Route path="/warehouse" element={<WarehouseDashboard />} />
           <Route path="/retailer" element={<RetailerDashboard />} />
-          <Route path="/customer" element={<CustomerLookup />} />
           <Route path="/reports" element={<Reports />} />
-          <Route path="/scan/:batchId" element={<ConsumerScan />} />
           <Route path="/traceability" element={<TraceabilityExplorer />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
