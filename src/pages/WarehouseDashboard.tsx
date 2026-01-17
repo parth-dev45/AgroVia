@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,13 @@ import {
   Download,
   BoxIcon,
   Filter,
-  ArrowRight
+  ArrowRight,
+  Truck,
+  MapPin,
+  Thermometer,
+  Droplets,
+  Activity,
+  Wifi
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -38,6 +44,7 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QRCodeSVG } from 'qrcode.react';
+import { LineChart, Line, ResponsiveContainer, YAxis } from 'recharts';
 
 export default function WarehouseDashboard() {
   const batches = getAllBatches().filter(b => b.qualityGrade !== null);
@@ -50,6 +57,9 @@ export default function WarehouseDashboard() {
   // Create crate form
   const [crateBatchId, setCrateBatchId] = useState('');
   const [crateQuantity, setCrateQuantity] = useState('');
+
+  // IoT Map State
+  const [selectedTruck, setSelectedTruck] = useState<number | null>(null);
 
   const filteredBatches = batches
     .filter(b => {
@@ -76,6 +86,17 @@ export default function WarehouseDashboard() {
 
   const selected = selectedBatch ? batches.find(b => b.batchId === selectedBatch) : null;
   const pendingOrders = orders.filter(o => o.status === 'Pending');
+
+  // Simulated IoT Data
+  const trucks = [
+    { id: 1, route: 'Farm A → Central Warehouse', status: 'In Transit', progress: 65, temp: 4.2, humidity: 58, eta: '2 hrs' },
+    { id: 2, route: 'Farm C → Central Warehouse', status: 'In Transit', progress: 30, temp: 3.8, humidity: 60, eta: '5 hrs' },
+    { id: 3, route: 'Central Warehouse → City Retail', status: 'Arriving', progress: 90, temp: 5.1, humidity: 55, eta: '15 mins' },
+  ];
+
+  const tempData = [
+    { val: 4.0 }, { val: 4.2 }, { val: 3.9 }, { val: 4.1 }, { val: 4.3 }, { val: 4.2 }, { val: 4.0 }, { val: 4.1 }
+  ];
 
   const handleCreateCrate = () => {
     if (!crateBatchId || !crateQuantity) {
@@ -157,8 +178,11 @@ export default function WarehouseDashboard() {
         </div>
 
         <Tabs defaultValue="inventory" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-secondary/50 rounded-xl p-1">
+          <TabsList className="grid w-full grid-cols-4 bg-secondary/50 rounded-xl p-1">
             <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Current Inventory</TabsTrigger>
+            <TabsTrigger value="logistics" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
+              <Wifi className="h-3 w-3" /> Live Logistics
+            </TabsTrigger>
             <TabsTrigger value="crates" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Crate Management</TabsTrigger>
             <TabsTrigger value="orders" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm relative">
               Orders
@@ -293,6 +317,152 @@ export default function WarehouseDashboard() {
                     <Search className="h-10 w-10 mb-4 opacity-20" />
                     <p>Select a batch from the list to view full tracking details and labels</p>
                   </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* IoT Logistics Tab */}
+          <TabsContent value="logistics" className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Map Section */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="glass-card overflow-hidden bg-slate-900 border-slate-800 text-white relative h-[500px]">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_70%)]" />
+
+                  {/* SVG Map Container */}
+                  <svg className="w-full h-full p-8" viewBox="0 0 800 500">
+                    {/* Connections */}
+                    <path d="M 100 100 L 400 250" stroke="#334155" strokeWidth="2" strokeDasharray="5,5" />
+                    <path d="M 100 400 L 400 250" stroke="#334155" strokeWidth="2" strokeDasharray="5,5" />
+                    <path d="M 400 250 L 700 250" stroke="#334155" strokeWidth="2" strokeDasharray="5,5" />
+
+                    {/* Animated Trucks */}
+                    {trucks.map(truck => {
+                      // Simple positioning logic for demo
+                      let x = 0, y = 0;
+                      if (truck.id === 1) { // Farm A -> Warehouse
+                        x = 100 + (300 * (truck.progress / 100));
+                        y = 100 + (150 * (truck.progress / 100));
+                      } else if (truck.id === 2) { // Farm C -> Warehouse
+                        x = 100 + (300 * (truck.progress / 100));
+                        y = 400 - (150 * (truck.progress / 100));
+                      } else { // Warehouse -> Retail
+                        x = 400 + (300 * (truck.progress / 100));
+                        y = 250;
+                      }
+
+                      return (
+                        <g
+                          key={truck.id}
+                          className="cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => setSelectedTruck(truck.id)}
+                        >
+                          <circle cx={x} cy={y} r="15" fill="#10b981" className="animate-pulse" opacity="0.5" />
+                          <circle cx={x} cy={y} r="8" fill="#10b981" />
+                          <image x={x - 10} y={y - 10} width="20" height="20" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='1' y='3' width='15' height='13'></rect><polygon points='16 8 20 8 23 11 23 16 16 16 16 8'></polygon><circle cx='5.5' cy='18.5' r='2.5'></circle><circle cx='18.5' cy='18.5' r='2.5'></circle></svg>" />
+                        </g>
+                      );
+                    })}
+
+                    {/* Nodes */}
+                    <g transform="translate(60, 60)">
+                      <circle cx="40" cy="40" r="30" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+                      <text x="40" y="45" textAnchor="middle" fill="white" fontSize="12">Farm A</text>
+                    </g>
+                    <g transform="translate(60, 360)">
+                      <circle cx="40" cy="40" r="30" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+                      <text x="40" y="45" textAnchor="middle" fill="white" fontSize="12">Farm C</text>
+                    </g>
+                    <g transform="translate(360, 210)">
+                      <circle cx="40" cy="40" r="40" fill="#0f172a" stroke="#10b981" strokeWidth="3" />
+                      <text x="40" y="45" textAnchor="middle" fill="white" fontWeight="bold">HUB</text>
+                    </g>
+                    <g transform="translate(660, 210)">
+                      <circle cx="40" cy="40" r="30" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+                      <text x="40" y="45" textAnchor="middle" fill="white" fontSize="12">Retail</text>
+                    </g>
+                  </svg>
+
+                  <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md p-3 rounded-xl border border-white/10">
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <Wifi className="h-4 w-4 text-fresh animate-pulse" /> Live Network
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">3 Active Deliveries</p>
+                  </div>
+                </Card>
+              </div>
+
+              {/* IoT Data Panel */}
+              <div>
+                {selectedTruck ? (
+                  <Card className="glass-card bg-slate-900 border-slate-800 text-white h-full animate-in slide-in-from-right duration-300">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Truck className="h-5 w-5 text-fresh" /> Vehicle #{selectedTruck}
+                          </CardTitle>
+                          <CardDescription className="text-gray-400 mt-1">
+                            {trucks.find(t => t.id === selectedTruck)?.route}
+                          </CardDescription>
+                        </div>
+                        <Badge variant="outline" className="border-fresh text-fresh animate-pulse">Live</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                          <div className="flex items-center gap-2 text-gray-400 mb-1">
+                            <Thermometer className="h-4 w-4" /> Temp
+                          </div>
+                          <div className="text-2xl font-mono font-bold">
+                            {trucks.find(t => t.id === selectedTruck)?.temp}°C
+                          </div>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                          <div className="flex items-center gap-2 text-gray-400 mb-1">
+                            <Droplets className="h-4 w-4" /> Humidity
+                          </div>
+                          <div className="text-2xl font-mono font-bold">
+                            {trucks.find(t => t.id === selectedTruck)?.humidity}%
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-gray-400 flex items-center gap-2">
+                          <Activity className="h-4 w-4" /> Cold Chain Integrity
+                        </h4>
+                        <div className="h-24 w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={tempData}>
+                              <Line type="monotone" dataKey="val" stroke="#10b981" strokeWidth={2} dot={false} />
+                              <YAxis domain={[3.5, 4.5]} hide />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-white/10">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-gray-400">ETA</span>
+                          <span className="font-bold">{trucks.find(t => t.id === selectedTruck)?.eta}</span>
+                        </div>
+                        <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                          <div
+                            className="bg-fresh h-full transition-all duration-1000"
+                            style={{ width: `${trucks.find(t => t.id === selectedTruck)?.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="glass-card bg-slate-900 border-slate-800 text-white h-full flex flex-col items-center justify-center text-center p-6 opacity-50 border-dashed">
+                    <MapPin className="h-12 w-12 text-gray-600 mb-4" />
+                    <p>Select a vehicle on the map to view real-time IoT sensor data.</p>
+                  </Card>
                 )}
               </div>
             </div>
