@@ -9,7 +9,8 @@ import {
   X,
   User,
   FileText,
-  Database
+  Database,
+  Sprout
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ const navItems = [
   { path: '/retailer', label: 'Retailer', icon: Store },
   { path: '/customer', label: 'Customer', icon: User },
   { path: '/reports', label: 'Reports', icon: FileText },
+  { path: '/sustainability', label: 'Eco-Impact', icon: Sprout },
   { path: '/traceability', label: 'Traceability', icon: Database },
 ];
 

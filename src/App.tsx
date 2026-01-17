@@ -14,6 +14,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import TraceabilityExplorer from "./pages/TraceabilityExplorer";
+import Sustainability from "./pages/Sustainability";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/reports" element={<Reports />} />
           <Route path="/scan/:batchId" element={<ConsumerScan />} />
           <Route path="/traceability" element={<TraceabilityExplorer />} />
+          <Route path="/sustainability" element={<Sustainability />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </HashRouter>
