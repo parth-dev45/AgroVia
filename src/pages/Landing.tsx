@@ -213,18 +213,18 @@ export default function Landing() {
                         {[
                             {
                                 quote: "AgroVia's blockchain traceability has completely changed how we build trust with our customers. Sales are up 30%.",
-                                author: "Sarah Jenkins",
-                                role: "Organic Farmer, California"
+                                author: "Kaustubh Jagade",
+                                role: "Organic Farmer, India"
                             },
                             {
                                 quote: "The AI grading system is a game changer. We save hours every day and dispute rates have dropped to near zero.",
-                                author: "Marcus Chen",
-                                role: "Wholesale Distributor, Singapore"
+                                author: "Anushka Talole",
+                                role: "Wholesale Distributor, India"
                             },
                             {
                                 quote: "Finally, a platform that actually connects the entire supply chain. The real-time logistics tracking is invaluable.",
-                                author: "Elena Rodriguez",
-                                role: "Supply Chain Director, Spain"
+                                author: "Anuj Pisal",
+                                role: "Supply Chain Director, India"
                             }
                         ].map((testimonial, i) => (
                             <div key={i} className="bg-background/60 backdrop-blur-sm p-8 rounded-3xl border border-border/50 shadow-sm relative">
