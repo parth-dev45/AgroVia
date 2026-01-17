@@ -8,7 +8,8 @@ import {
   Menu,
   X,
   User,
-  FileText
+  FileText,
+  Database
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -20,13 +21,13 @@ interface LayoutProps {
 }
 
 const navItems = [
-  { path: '/', label: 'Overview', icon: BarChart3 },
+  { path: '/dashboard', label: 'Overview', icon: BarChart3 },
   { path: '/farmer', label: 'Farmer', icon: Leaf },
-  { path: '/quality', label: 'Quality', icon: ClipboardCheck },
+  { path: '/grading', label: 'Quality', icon: ClipboardCheck },
   { path: '/warehouse', label: 'Warehouse', icon: Warehouse },
   { path: '/retailer', label: 'Retailer', icon: Store },
   { path: '/reports', label: 'Reports', icon: FileText },
-  { path: '/customer', label: 'Customer', icon: User },
+  { path: '/traceability', label: 'Traceability', icon: Database },
 ];
 
 export function Layout({ children }: LayoutProps) {
