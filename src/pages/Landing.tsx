@@ -194,6 +194,54 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* Testimonials Section */}
+            <section id="testimonials" className="py-24 bg-secondary/30">
+                <div className="container mx-auto px-6">
+                    <div className="text-center max-w-2xl mx-auto mb-16">
+                        <h2 className="text-3xl font-bold mb-4">Trusted by Industry Leaders</h2>
+                        <p className="text-muted-foreground text-lg">See how AgroVia is transforming supply chains worldwide.</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                quote: "AgroVia's blockchain traceability has completely changed how we build trust with our customers. Sales are up 30%.",
+                                author: "Sarah Jenkins",
+                                role: "Organic Farmer, California"
+                            },
+                            {
+                                quote: "The AI grading system is a game changer. We save hours every day and dispute rates have dropped to near zero.",
+                                author: "Marcus Chen",
+                                role: "Wholesale Distributor, Singapore"
+                            },
+                            {
+                                quote: "Finally, a platform that actually connects the entire supply chain. The real-time logistics tracking is invaluable.",
+                                author: "Elena Rodriguez",
+                                role: "Supply Chain Director, Spain"
+                            }
+                        ].map((testimonial, i) => (
+                            <div key={i} className="bg-background/60 backdrop-blur-sm p-8 rounded-3xl border border-border/50 shadow-sm relative">
+                                <div className="absolute top-8 right-8 text-primary/20">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14.017 21L14.017 18C14.017 16.054 15.337 14.713 17.373 14.713H17.525C17.068 13.069 16.49 11.593 15.426 10.428C14.363 9.263 12.872 8.5 10.975 8.5V4.764C13.844 4.764 16.295 6.075 18.067 8.32C19.839 10.565 20.849 13.91 20.887 18.006L14.017 21ZM5.52901 21L5.52901 18C5.52901 16.054 6.84901 14.713 8.88501 14.713H9.03701C8.58001 13.069 8.00301 11.593 6.93801 10.428C5.87401 9.263 4.38301 8.5 2.48601 8.5V4.764C5.35501 4.764 7.80601 6.075 9.57801 8.32C11.35 10.565 12.36 13.91 12.399 18.006L5.52901 21Z" />
+                                    </svg>
+                                </div>
+                                <p className="text-lg italic mb-6 leading-relaxed">"{testimonial.quote}"</p>
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-fresh flex items-center justify-center text-white font-bold text-sm">
+                                        {testimonial.author[0]}
+                                    </div>
+                                    <div>
+                                        <div className="font-bold">{testimonial.author}</div>
+                                        <div className="text-xs text-muted-foreground uppercase tracking-wide">{testimonial.role}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* CTA */}
             <section className="py-24">
                 <div className="container mx-auto px-6">

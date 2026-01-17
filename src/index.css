@@ -122,13 +122,17 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
-    background-image: 
+    background-image:
       radial-gradient(at 0% 0%, hsla(142, 60%, 30%, 0.05) 0px, transparent 50%),
       radial-gradient(at 100% 0%, hsla(35, 90%, 55%, 0.05) 0px, transparent 50%),
       radial-gradient(at 100% 100%, hsla(142, 60%, 30%, 0.05) 0px, transparent 50%),
@@ -141,11 +145,11 @@
   .glass {
     @apply bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg;
   }
-  
+
   .glass-card {
     @apply bg-white/60 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
-  
+
   .text-balance {
     text-wrap: balance;
   }
