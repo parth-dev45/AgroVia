@@ -39,7 +39,7 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen">
       {/* Floating Navbar */}
       <div className="fixed top-4 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
-        <header className="w-full max-w-5xl rounded-2xl glass px-4 py-3 flex items-center justify-between pointer-events-auto">
+        <header className="w-full max-w-7xl rounded-2xl glass px-4 py-3 flex items-center justify-between pointer-events-auto">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-105 group-hover:rotate-3">
               <Leaf className="h-6 w-6 text-white" />

@@ -3,6 +3,13 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, Leaf, ShieldCheck, Zap, Globe, ChevronRight, BarChart3, Lock } from 'lucide-react';
 
 export default function Landing() {
+    const scrollToSection = (id: string) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/20">
 
@@ -16,9 +23,9 @@ export default function Landing() {
                         <span className="text-2xl font-bold tracking-tight">AgroVia</span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-                        <a href="#features" className="hover:text-primary transition-colors">Features</a>
-                        <a href="#how-it-works" className="hover:text-primary transition-colors">Traceability</a>
-                        <a href="#testimonials" className="hover:text-primary transition-colors">Testimonials</a>
+                        <button onClick={() => scrollToSection('features')} className="hover:text-primary transition-colors">Features</button>
+                        <button onClick={() => scrollToSection('how-it-works')} className="hover:text-primary transition-colors">Traceability</button>
+                        <button onClick={() => scrollToSection('testimonials')} className="hover:text-primary transition-colors">Testimonials</button>
                     </div>
                     <div className="flex items-center gap-4">
                         <Link to="/dashboard">
