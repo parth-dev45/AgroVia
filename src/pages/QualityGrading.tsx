@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { getAllBatches } from '@/lib/mockData';
 import { determineGradeFromVisualAndFirmness, calculateExpiryDate, calculateRemainingDays, determineFreshnessStatus, isSaleAllowed } from '@/lib/freshness';
 import { Firmness, QualityGrade, BatchWithDetails, getProductById, getProductPrice } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardCheck, Star, CheckCircle2, AlertCircle, TrendingUp, Thermometer } from 'lucide-react';
+import { ClipboardCheck, Star, CheckCircle2, AlertCircle, TrendingUp, Thermometer, Camera, Sparkles, Loader2, Scan } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -24,8 +24,53 @@ export default function QualityGrading() {
   const [firmness, setFirmness] = useState<Firmness>('Medium');
   const [gradedBatch, setGradedBatch] = useState<{ batch: BatchWithDetails; grade: QualityGrade } | null>(null);
 
+  // AI Simulator State
+  const [isAnalysing, setIsAnalysing] = useState(false);
+  const [aiResult, setAiResult] = useState<{ grade: QualityGrade; confidence: number; defects: string[] } | null>(null);
+
   const selectedBatch = untestedBatches.find(b => b.batchId === selectedBatchId);
   const calculatedGrade = determineGradeFromVisualAndFirmness(visualQuality[0], firmness);
+
+  const simulateAiAnalysis = () => {
+    if (!selectedBatch) return;
+    setIsAnalysing(true);
+    setAiResult(null);
+
+    // Mock analysis delay
+    setTimeout(() => {
+      setIsAnalysing(false);
+      const randomScore = Math.random();
+      let result = { grade: 'A' as QualityGrade, confidence: 98, defects: [] as string[] };
+
+      if (randomScore > 0.6) {
+        result = { grade: 'A', confidence: 96, defects: ['None detected'] };
+      } else if (randomScore > 0.3) {
+        result = { grade: 'B', confidence: 89, defects: ['Minor surface blemishes'] };
+      } else {
+        result = { grade: 'C', confidence: 92, defects: ['Visible bruising', 'Size variance'] };
+      }
+
+      setAiResult(result);
+
+      // Auto-apply logic
+      if (result.grade === 'A') {
+        setVisualQuality([5]);
+        setFirmness('High');
+      } else if (result.grade === 'B') {
+        setVisualQuality([3]);
+        setFirmness('Medium');
+      } else {
+        setVisualQuality([2]);
+        setFirmness('Low');
+      }
+
+      toast({
+        title: "AI Analysis Complete",
+        description: `Detected Grade ${result.grade} with ${result.confidence}% confidence.`,
+      });
+
+    }, 2500);
+  };
 
   const handleGrade = () => {
     if (!selectedBatch) return;
@@ -76,6 +121,7 @@ export default function QualityGrading() {
 
     const pricePerUnit = getProductPrice(productId, grade);
     setGradedBatch({ batch: updateBatch, grade });
+    setAiResult(null);
 
     toast({
       title: 'Quality Test Complete',
@@ -88,6 +134,7 @@ export default function QualityGrading() {
     setVisualQuality([3]);
     setFirmness('Medium');
     setGradedBatch(null);
+    setAiResult(null);
   };
 
   const gradeColors = {
@@ -222,6 +269,67 @@ export default function QualityGrading() {
 
                   {selectedBatch && (
                     <div className="animate-in slide-in-from-top-4 fade-in duration-300 space-y-8">
+                      {/* AI Vision Scanner */}
+                      <div className="relative overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6 text-center group">
+                        <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 transition-opacity">
+                          <Sparkles className="h-6 w-6 text-yellow-500 animate-pulse" />
+                        </div>
+
+                        {!aiResult ? (
+                          <div className="space-y-4">
+                            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                              {isAnalysing ? (
+                                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                              ) : (
+                                <Camera className="h-8 w-8 text-primary" />
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{isAnalysing ? "Analyzing Produce..." : "AgroVision AI Scan"}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {isAnalysing ? "Detecting size, color, and surface defects." : "Upload photo for instant quality grading."}
+                              </p>
+                            </div>
+                            <Button
+                              onClick={simulateAiAnalysis}
+                              disabled={isAnalysing}
+                              className="rounded-full px-8 shadow-lg shadow-primary/20"
+                            >
+                              {isAnalysing ? "Processing..." : (
+                                <><Scan className="mr-2 h-4 w-4" /> Start AI Scan</>
+                              )}
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4 animate-in zoom-in-95 duration-300">
+                            <div className="mx-auto w-16 h-16 rounded-full bg-fresh/10 flex items-center justify-center mb-2 border-2 border-fresh">
+                              <CheckCircle2 className="h-8 w-8 text-fresh" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">AI Analysis Complete</h3>
+                              <div className="flex justify-center gap-2 text-sm mt-1">
+                                <Badge variant="outline" className="bg-white/50">{aiResult.confidence}% Confidence</Badge>
+                                <Badge variant="default" className={cn(gradeColors[aiResult.grade])}>Grade {aiResult.grade}</Badge>
+                              </div>
+                            </div>
+                            <div className="bg-white/40 rounded-lg p-3 text-sm text-left border">
+                              <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Detailed Findings:</p>
+                              <ul className="list-disc pl-4 space-y-1">
+                                {aiResult.defects.map((defect, i) => <li key={i}>{defect}</li>)}
+                              </ul>
+                            </div>
+                            <Button
+                              variant="outline"
+                              onClick={() => setAiResult(null)}
+                              size="sm"
+                              className="text-xs"
+                            >
+                              Rescan Batch
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
                       {(() => {
                         const product = getProductById(selectedBatch.cropType);
                         return (
