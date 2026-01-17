@@ -12,6 +12,7 @@ import CustomerLookup from "./pages/CustomerLookup";
 import ConsumerScan from "./pages/ConsumerScan";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import TraceabilityExplorer from "./pages/TraceabilityExplorer";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/customer" element={<CustomerLookup />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/scan/:batchId" element={<ConsumerScan />} />
+          <Route path="/traceability" element={<TraceabilityExplorer />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </HashRouter>
