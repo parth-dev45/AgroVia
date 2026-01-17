@@ -4,28 +4,30 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { getAllBatches, getAllFarmers, getAnalytics } from '@/lib/mockData';
 import { getAllBills, getAllOrders } from '@/lib/orderData';
-import { getProductById, PRODUCTS, getProductPrice, QualityGrade } from '@/lib/types';
+import { getProductById, getProductPrice, QualityGrade } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
+import {
   Calendar as CalendarIcon,
   TrendingDown,
   Users,
   DollarSign,
   Package,
-  FileDown,
   Leaf,
   Award,
   BarChart3,
-  PieChart as PieChartIcon
+  PieChart as PieChartIcon,
+  ArrowUpRight,
+  TrendingUp,
+  LineChart as LineChartIcon
 } from 'lucide-react';
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -57,11 +59,10 @@ export default function Reports() {
   const farmers = getAllFarmers();
   const bills = getAllBills();
   const orders = getAllOrders();
-  const analytics = getAnalytics();
 
   // Filter batches by date range
   const filteredBatches = useMemo(() => {
-    return batches.filter(batch => 
+    return batches.filter(batch =>
       isWithinInterval(new Date(batch.harvestDate), {
         start: startOfDay(dateRange.from),
         end: endOfDay(dateRange.to)
@@ -71,7 +72,7 @@ export default function Reports() {
 
   // Filter bills by date range
   const filteredBills = useMemo(() => {
-    return bills.filter(bill => 
+    return bills.filter(bill =>
       isWithinInterval(new Date(bill.createdAt), {
         start: startOfDay(dateRange.from),
         end: endOfDay(dateRange.to)
@@ -94,14 +95,13 @@ export default function Reports() {
     const expired = filteredBatches.filter(b => b.retailStatus?.status === 'Expired');
     const consumeSoon = filteredBatches.filter(b => b.retailStatus?.status === 'Consume Soon');
     const fresh = filteredBatches.filter(b => b.retailStatus?.status === 'Fresh');
-    
+
     const expiredQty = expired.reduce((sum, b) => sum + b.quantity, 0);
     const totalQty = filteredBatches.reduce((sum, b) => sum + b.quantity, 0);
     const wasteRate = totalQty > 0 ? ((expiredQty / totalQty) * 100).toFixed(1) : '0';
-    
-    // Estimate waste prevented (items sold before expiry through early warning)
+
     const wastePrevented = consumeSoon.reduce((sum, b) => sum + Math.round(b.quantity * 0.3), 0);
-    
+
     return {
       totalBatches: filteredBatches.length,
       expiredBatches: expired.length,
@@ -121,19 +121,17 @@ export default function Reports() {
       const gradeB = farmerBatches.filter(b => b.qualityGrade === 'B').length;
       const gradeC = farmerBatches.filter(b => b.qualityGrade === 'C').length;
       const totalQty = farmerBatches.reduce((sum, b) => sum + b.quantity, 0);
-      
-      // Calculate revenue
+
       const revenue = farmerBatches.reduce((sum, b) => {
         if (!b.qualityGrade) return sum;
         const price = getProductPrice(b.cropType, b.qualityGrade as QualityGrade);
         return sum + (b.quantity * price);
       }, 0);
-      
-      // Quality score (weighted average)
-      const qualityScore = farmerBatches.length > 0 
+
+      const qualityScore = farmerBatches.length > 0
         ? Math.round(((gradeA * 100) + (gradeB * 70) + (gradeC * 40)) / farmerBatches.length)
         : 0;
-      
+
       return {
         ...farmer,
         totalBatches: farmerBatches.length,
@@ -150,24 +148,24 @@ export default function Reports() {
   // Revenue by Product
   const revenueByProduct = useMemo(() => {
     const productRevenue: Record<string, { revenue: number; quantity: number; gradeA: number; gradeB: number; gradeC: number }> = {};
-    
+
     filteredBatches.forEach(batch => {
       if (!batch.qualityGrade) return;
       const product = getProductById(batch.cropType);
       if (!product) return;
-      
+
       const price = getProductPrice(batch.cropType, batch.qualityGrade as QualityGrade);
       const revenue = batch.quantity * price;
-      
+
       if (!productRevenue[product.name]) {
         productRevenue[product.name] = { revenue: 0, quantity: 0, gradeA: 0, gradeB: 0, gradeC: 0 };
       }
-      
+
       productRevenue[product.name].revenue += revenue;
       productRevenue[product.name].quantity += batch.quantity;
       productRevenue[product.name][`grade${batch.qualityGrade}` as 'gradeA' | 'gradeB' | 'gradeC']++;
     });
-    
+
     return Object.entries(productRevenue)
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.revenue - a.revenue);
@@ -176,17 +174,17 @@ export default function Reports() {
   // Revenue by Grade
   const revenueByGrade = useMemo(() => {
     const gradeData: Record<QualityGrade, number> = { A: 0, B: 0, C: 0 };
-    
+
     filteredBatches.forEach(batch => {
       if (!batch.qualityGrade) return;
       const price = getProductPrice(batch.cropType, batch.qualityGrade as QualityGrade);
       gradeData[batch.qualityGrade as QualityGrade] += batch.quantity * price;
     });
-    
+
     return [
-      { name: 'Grade A (Premium)', value: gradeData.A, color: 'hsl(142, 70%, 45%)' },
-      { name: 'Grade B (Standard)', value: gradeData.B, color: 'hsl(35, 90%, 55%)' },
-      { name: 'Grade C (Economy)', value: gradeData.C, color: 'hsl(0, 72%, 50%)' },
+      { name: 'Grade A', value: gradeData.A, color: '#16a34a' },
+      { name: 'Grade B', value: gradeData.B, color: '#f59e0b' },
+      { name: 'Grade C', value: gradeData.C, color: '#64748b' },
     ];
   }, [filteredBatches]);
 
@@ -194,16 +192,16 @@ export default function Reports() {
   const dailyTrend = useMemo(() => {
     const days = Math.min(parseInt(quickRange), 14);
     const trend = [];
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = subDays(new Date(), i);
-      const dayBatches = batches.filter(b => 
+      const dayBatches = batches.filter(b =>
         format(new Date(b.harvestDate), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
       );
-      const dayBills = bills.filter(b => 
+      const dayBills = bills.filter(b =>
         format(new Date(b.createdAt), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
       );
-      
+
       trend.push({
         date: format(date, 'MMM d'),
         batches: dayBatches.length,
@@ -211,7 +209,7 @@ export default function Reports() {
         revenue: dayBills.reduce((sum, b) => sum + b.totalAmount, 0)
       });
     }
-    
+
     return trend;
   }, [batches, bills, quickRange]);
 
@@ -220,28 +218,30 @@ export default function Reports() {
     return filteredBills.reduce((sum, bill) => sum + bill.totalAmount, 0);
   }, [filteredBills]);
 
-  // Status distribution for pie chart
+  // Status distribution
   const statusData = [
-    { name: 'Fresh', value: wasteMetrics.freshBatches, color: 'hsl(142, 70%, 45%)' },
-    { name: 'Consume Soon', value: wasteMetrics.consumeSoonBatches, color: 'hsl(35, 90%, 55%)' },
-    { name: 'Expired', value: wasteMetrics.expiredBatches, color: 'hsl(0, 72%, 50%)' },
+    { name: 'Fresh', value: wasteMetrics.freshBatches, color: '#16a34a' },
+    { name: 'Consume Soon', value: wasteMetrics.consumeSoonBatches, color: '#f59e0b' },
+    { name: 'Expired', value: wasteMetrics.expiredBatches, color: '#ef4444' },
   ];
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Reports & Analytics</h1>
-            <p className="text-muted-foreground mt-1">
-              Detailed insights into waste reduction, farmer performance, and revenue
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+              <TrendingUp className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Analytics</h1>
+              <p className="text-muted-foreground">Performance & Insights</p>
+            </div>
           </div>
-          
-          {/* Date Range Filter */}
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 bg-secondary/50 p-1.5 rounded-xl border">
             <Select value={quickRange} onValueChange={handleQuickRange}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[140px] border-0 bg-transparent shadow-none focus:ring-0">
                 <SelectValue placeholder="Select range" />
               </SelectTrigger>
               <SelectContent>
@@ -251,10 +251,10 @@ export default function Reports() {
                 <SelectItem value="90">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
-            
+            <div className="h-6 w-px bg-border mx-1" />
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                   <CalendarIcon className="h-4 w-4" />
                   {format(dateRange.from, 'MMM d')} - {format(dateRange.to, 'MMM d')}
                 </Button>
@@ -277,452 +277,244 @@ export default function Reports() {
         </div>
 
         <Tabs defaultValue="waste" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="waste" className="gap-2">
-              <TrendingDown className="h-4 w-4" />
-              Waste Reduction
+          <TabsList className="grid w-full grid-cols-3 bg-secondary/50 p-1 rounded-xl">
+            <TabsTrigger value="waste" className="rounded-lg gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Leaf className="h-4 w-4" /> Waste Metrics
             </TabsTrigger>
-            <TabsTrigger value="farmers" className="gap-2">
-              <Users className="h-4 w-4" />
-              Farmer Performance
+            <TabsTrigger value="farmers" className="rounded-lg gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Users className="h-4 w-4" /> Farmer Quality
             </TabsTrigger>
-            <TabsTrigger value="revenue" className="gap-2">
-              <DollarSign className="h-4 w-4" />
-              Revenue Analytics
+            <TabsTrigger value="revenue" className="rounded-lg gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <DollarSign className="h-4 w-4" /> Revenue Flow
             </TabsTrigger>
           </TabsList>
 
-          {/* Waste Reduction Tab */}
-          <TabsContent value="waste" className="space-y-6">
-            {/* Key Metrics */}
+          <TabsContent value="waste" className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
             <div className="grid gap-4 md:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total Batches
-                  </CardTitle>
-                  <Package className="h-5 w-5 text-primary" />
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Volume</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{wasteMetrics.totalBatches}</div>
-                  <p className="text-xs text-muted-foreground mt-1">In selected period</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">{wasteMetrics.totalBatches}</span>
+                    <span className="text-sm text-muted-foreground">batches</span>
+                  </div>
                 </CardContent>
               </Card>
-              
-              <Card className="border-expired/30 bg-expired/5">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Waste Rate
-                  </CardTitle>
-                  <TrendingDown className="h-5 w-5 text-expired" />
+              <Card className="glass-card bg-expired/5 border-expired/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-expired uppercase tracking-wider">Waste Rate</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-expired">{wasteMetrics.wasteRate}%</div>
-                  <p className="text-xs text-muted-foreground mt-1">{wasteMetrics.expiredQuantity} kg expired</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-expired">{wasteMetrics.wasteRate}%</span>
+                    <TrendingDown className="h-4 w-4 text-expired" />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{wasteMetrics.expiredQuantity}kg Lost</p>
                 </CardContent>
               </Card>
-              
-              <Card className="border-fresh/30 bg-fresh/5">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Waste Prevented
-                  </CardTitle>
-                  <Leaf className="h-5 w-5 text-fresh" />
+              <Card className="glass-card bg-fresh/5 border-fresh/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-fresh uppercase tracking-wider">Saved</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-fresh">{wasteMetrics.wastePrevented} kg</div>
-                  <p className="text-xs text-muted-foreground mt-1">Early warning saves</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-fresh">{wasteMetrics.wastePrevented}kg</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Via Early Warnings</p>
                 </CardContent>
               </Card>
-              
-              <Card className="border-primary/30 bg-primary/5">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Fresh Batches
-                  </CardTitle>
-                  <Package className="h-5 w-5 text-fresh" />
+              <Card className="glass-card bg-primary/5 border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-primary uppercase tracking-wider">Active</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-fresh">{wasteMetrics.freshBatches}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Ready for sale</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-primary">{wasteMetrics.freshBatches}</span>
+                    <span className="text-sm text-muted-foreground">fresh</span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Charts */}
             <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChartIcon className="h-5 w-5" />
-                    Freshness Distribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={statusData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                          dataKey="value"
-                          label={({ name, value }) => `${name}: ${value}`}
-                        >
-                          {statusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
+              <Card className="glass-card p-4">
+                <h3 className="font-semibold mb-6 flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4 text-primary" /> Stock Freshness
+                </h3>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '12px', borderColor: 'rgba(0,0,0,0.1)' }} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    Daily Harvest Trend
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={dailyTrend}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                        <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
-                        <YAxis className="text-muted-foreground" fontSize={12} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: 'var(--radius)'
-                          }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="quantity" 
-                          stroke="hsl(var(--primary))" 
-                          fill="hsl(var(--primary) / 0.2)"
-                          name="Quantity (kg)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
+              <Card className="glass-card p-4">
+                <h3 className="font-semibold mb-6 flex items-center gap-2">
+                  <LineChartIcon className="h-4 w-4 text-primary" /> Daily Intake
+                </h3>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={dailyTrend}>
+                      <defs>
+                        <linearGradient id="colorQty" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tickMargin={10} fontSize={12} />
+                      <YAxis axisLine={false} tickLine={false} fontSize={12} />
+                      <Tooltip contentStyle={{ borderRadius: '12px', borderColor: 'rgba(0,0,0,0.1)' }} />
+                      <Area type="monotone" dataKey="quantity" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorQty)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </Card>
             </div>
           </TabsContent>
 
-          {/* Farmer Performance Tab */}
-          <TabsContent value="farmers" className="space-y-6">
-            {/* Top Farmers */}
+          <TabsContent value="farmers" className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
             <div className="grid gap-4 md:grid-cols-3">
               {farmerPerformance.slice(0, 3).map((farmer, index) => (
                 <Card key={farmer.farmerId} className={cn(
-                  index === 0 && "border-yellow-500/50 bg-yellow-500/5"
+                  "glass-card border-none relative overflow-hidden",
+                  index === 0 ? "bg-gradient-to-br from-yellow-500/10 to-transparent ring-1 ring-yellow-500/50" : "bg-white/40"
                 )}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {index === 0 && <Award className="h-5 w-5 text-yellow-500" />}
-                        #{index + 1} {farmer.name}
-                      </CardTitle>
-                      <span className="text-2xl font-bold text-primary">{farmer.qualityScore}%</span>
+                  {index === 0 && (
+                    <div className="absolute top-0 right-0 bg-yellow-500 text-white px-3 py-1 rounded-bl-xl text-xs font-bold shadow-sm">
+                      TOP RATED
                     </div>
-                    <CardDescription>Quality Score</CardDescription>
+                  )}
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-3">
+                      <div className={cn(
+                        "h-10 w-10 rounded-full flex items-center justify-center font-bold text-lg",
+                        index === 0 ? "bg-yellow-500 text-white shadow-lg shadow-yellow-500/20" : "bg-secondary"
+                      )}>
+                        #{index + 1}
+                      </div>
+                      <div>
+                        <div className="text-base">{farmer.name}</div>
+                        <div className="text-xs font-normal text-muted-foreground">{farmer.farmerCode}</div>
+                      </div>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Total Batches</span>
-                        <span className="font-medium">{farmer.totalBatches}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Total Quantity</span>
-                        <span className="font-medium">{farmer.totalQuantity} kg</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Revenue Generated</span>
-                        <span className="font-medium text-fresh">Rs.{farmer.revenue.toLocaleString()}</span>
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        <span className="px-2 py-1 bg-fresh/10 text-fresh text-xs rounded-full">
-                          A: {farmer.gradeA}
-                        </span>
-                        <span className="px-2 py-1 bg-warning/10 text-warning text-xs rounded-full">
-                          B: {farmer.gradeB}
-                        </span>
-                        <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded-full">
-                          C: {farmer.gradeC}
-                        </span>
-                      </div>
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-muted-foreground text-sm">Quality Score</span>
+                      <span className="text-2xl font-black text-foreground">{farmer.qualityScore}%</span>
+                    </div>
+                    <div className="w-full bg-secondary/50 h-2 rounded-full overflow-hidden flex">
+                      <div style={{ width: `${(farmer.gradeA / farmer.totalBatches) * 100}%` }} className="bg-fresh" />
+                      <div style={{ width: `${(farmer.gradeB / farmer.totalBatches) * 100}%` }} className="bg-warning" />
+                      <div style={{ width: `${(farmer.gradeC / farmer.totalBatches) * 100}%` }} className="bg-muted-foreground" />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+                      <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-fresh" /> Grade A</span>
+                      <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-warning" /> Grade B</span>
+                      <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-gray-400" /> Grade C</span>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
-            {/* Farmer Comparison Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Farmer Quality Comparison</CardTitle>
-                <CardDescription>Grade distribution by farmer</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={farmerPerformance}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="name" className="text-muted-foreground" fontSize={12} />
-                      <YAxis className="text-muted-foreground" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: 'var(--radius)'
-                        }}
-                      />
-                      <Legend />
-                      <Bar dataKey="gradeA" name="Grade A" fill="hsl(142, 70%, 45%)" stackId="a" />
-                      <Bar dataKey="gradeB" name="Grade B" fill="hsl(35, 90%, 55%)" stackId="a" />
-                      <Bar dataKey="gradeC" name="Grade C" fill="hsl(0, 72%, 50%)" stackId="a" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Full Leaderboard */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Complete Leaderboard</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {farmerPerformance.map((farmer, index) => (
-                    <div 
-                      key={farmer.farmerId} 
-                      className="flex items-center justify-between p-3 bg-secondary rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm",
-                          index === 0 ? "bg-yellow-500 text-yellow-950" :
-                          index === 1 ? "bg-gray-400 text-gray-950" :
-                          index === 2 ? "bg-amber-600 text-amber-950" :
-                          "bg-muted text-muted-foreground"
-                        )}>
-                          {index + 1}
-                        </span>
-                        <div>
-                          <p className="font-medium">{farmer.name}</p>
-                          <p className="text-xs text-muted-foreground">{farmer.farmerCode}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-primary">{farmer.qualityScore}%</p>
-                        <p className="text-xs text-muted-foreground">{farmer.totalBatches} batches</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
+            <Card className="glass-card p-6">
+              <h3 className="font-semibold mb-6">Detailed Performance Metrics</h3>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={farmerPerformance} barSize={20}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tickMargin={10} fontSize={12} />
+                    <YAxis axisLine={false} tickLine={false} fontSize={12} />
+                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', borderColor: 'rgba(0,0,0,0.1)' }} />
+                    <Legend />
+                    <Bar dataKey="gradeA" name="Grade A" stackId="a" fill="#16a34a" radius={[0, 0, 4, 4]} />
+                    <Bar dataKey="gradeB" name="Grade B" stackId="a" fill="#f59e0b" />
+                    <Bar dataKey="gradeC" name="Grade C" stackId="a" fill="#64748b" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </Card>
           </TabsContent>
 
-          {/* Revenue Tab */}
-          <TabsContent value="revenue" className="space-y-6">
-            {/* Revenue Summary */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card className="bg-primary text-primary-foreground">
+          <TabsContent value="revenue" className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-none shadow-lg">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-medium">Total Revenue</CardTitle>
+                  <CardTitle className="text-sm font-medium opacity-90">Total Revenue</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-4xl font-bold">Rs.{totalRevenue.toLocaleString()}</div>
-                  <p className="text-sm opacity-90 mt-2">
-                    From {filteredBills.length} bills in selected period
-                  </p>
                 </CardContent>
               </Card>
-              
-              <Card>
+              <Card className="glass-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Avg Bill Value</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
-                    Rs.{filteredBills.length > 0 ? Math.round(totalRevenue / filteredBills.length).toLocaleString() : 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Per transaction</p>
+                  <div className="text-3xl font-bold">{filteredBills.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Processed Bills</p>
                 </CardContent>
               </Card>
-              
-              <Card>
+              <Card className="glass-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Orders</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Value</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{orders.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Warehouse orders placed</p>
+                  <div className="text-3xl font-bold">Rs.{filteredBills.length > 0 ? Math.round(totalRevenue / filteredBills.length).toLocaleString() : 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Per Bill</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Revenue Charts */}
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue by Grade</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={revenueByGrade}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                          dataKey="value"
-                          label={({ name, value }) => `Rs.${value.toLocaleString()}`}
-                        >
-                          {revenueByGrade.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value: number) => `Rs.${value.toLocaleString()}`} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Daily Revenue Trend</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={dailyTrend}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                        <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
-                        <YAxis className="text-muted-foreground" fontSize={12} />
-                        <Tooltip 
-                          formatter={(value: number) => `Rs.${value.toLocaleString()}`}
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: 'var(--radius)'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="revenue" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={2}
-                          dot={{ fill: 'hsl(var(--primary))' }}
-                          name="Revenue"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Revenue by Product */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue by Product</CardTitle>
-                <CardDescription>Top performing products by revenue</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="glass-card col-span-2 p-6">
+                <h3 className="font-semibold mb-6">Revenue Trend</h3>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={revenueByProduct.slice(0, 8)} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis type="number" className="text-muted-foreground" fontSize={12} />
-                      <YAxis dataKey="name" type="category" className="text-muted-foreground" fontSize={12} width={80} />
-                      <Tooltip 
-                        formatter={(value: number) => `Rs.${value.toLocaleString()}`}
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: 'var(--radius)'
-                        }}
-                      />
-                      <Bar 
-                        dataKey="revenue" 
-                        fill="hsl(var(--primary))" 
-                        radius={[0, 4, 4, 0]}
-                        name="Revenue"
-                      />
-                    </BarChart>
+                    <LineChart data={dailyTrend}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tickMargin={10} fontSize={12} />
+                      <YAxis axisLine={false} tickLine={false} fontSize={12} hide />
+                      <Tooltip contentStyle={{ borderRadius: '12px', borderColor: 'rgba(0,0,0,0.1)' }} />
+                      <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                    </LineChart>
                   </ResponsiveContainer>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Product Details Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Performance Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 font-medium">Product</th>
-                        <th className="text-right py-3 font-medium">Quantity</th>
-                        <th className="text-center py-3 font-medium">Grade A</th>
-                        <th className="text-center py-3 font-medium">Grade B</th>
-                        <th className="text-center py-3 font-medium">Grade C</th>
-                        <th className="text-right py-3 font-medium">Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {revenueByProduct.map((product, i) => (
-                        <tr key={i} className="border-b">
-                          <td className="py-3 font-medium">{product.name}</td>
-                          <td className="text-right py-3">{product.quantity} kg</td>
-                          <td className="text-center py-3">
-                            <span className="px-2 py-1 bg-fresh/10 text-fresh rounded-full text-xs">
-                              {product.gradeA}
-                            </span>
-                          </td>
-                          <td className="text-center py-3">
-                            <span className="px-2 py-1 bg-warning/10 text-warning rounded-full text-xs">
-                              {product.gradeB}
-                            </span>
-                          </td>
-                          <td className="text-center py-3">
-                            <span className="px-2 py-1 bg-muted text-muted-foreground rounded-full text-xs">
-                              {product.gradeC}
-                            </span>
-                          </td>
-                          <td className="text-right py-3 font-semibold text-primary">
-                            Rs.{product.revenue.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              </Card>
+              <Card className="glass-card p-6">
+                <h3 className="font-semibold mb-6">Top Products</h3>
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                  {revenueByProduct.slice(0, 5).map((product, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-secondary/30">
+                      <div className="flex items-center gap-3">
+                        <div className="font-bold text-muted-foreground w-4">{i + 1}</div>
+                        <span className="font-medium">{product.name}</span>
+                      </div>
+                      <span className="font-semibold text-primary">Rs.{product.revenue.toLocaleString()}</span>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
